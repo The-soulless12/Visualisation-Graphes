@@ -1,52 +1,56 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Visualisation Graphes</title>
-  <script src="https://d3js.org/d3.v5.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap');
-    
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation Graphes</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap');
+      
+      body {
+        font-family: 'Montserrat', sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
 
-    .node {
-      stroke: #fff;
-      stroke-width: 1.5px;
-    }
-    .link {
-      stroke: #999;
-      stroke-opacity: 0.6;
-    }
-    text {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 12px;
-      fill: #333;
-      pointer-events: none;
-    }
-    svg {
-      border: 1px solid black;
-      display: block;
-      margin: auto;
-      border-radius: 20px;
-      background-color: #fff;
-    }
-    .container {
-      position: absolute;
-      top: 15px;
-      left: 10px;
-      background-color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-    }
-  </style>
+      .node {
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+
+      .link {
+        stroke: #999;
+        stroke-opacity: 0.6;
+      }
+
+      text {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 12px;
+        fill: #333;
+        pointer-events: none;
+      }
+      
+      svg {
+        border: 1px solid grey;
+        display: block;
+        margin: auto;
+        border-radius: 20px;
+        background-color: #fff;
+      }
+
+      .container {
+        position: absolute;
+        top: 15px;
+        left: 10px;
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 10px;
+      }
+    </style>
 </head>
 <body>
   <svg width="800" height="600"></svg>
@@ -55,59 +59,86 @@
     <br>
     <input type="checkbox" id="force-diagram" onclick="updateEffect()"> Diagramme de Force
   </div>
-  <script>
-    const width = 800, height = 600;
-    const svg = d3.select("svg");
-    const container = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
+  
+<script src="https://d3js.org/d3.v6.min.js"></script>
 
-    d3.json("data.json").then(data => {
-    
-      const force = d3.forceSimulation(data.nodes)
-        .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-400))
-        .force("center", d3.forceCenter(0, 0));
+<script>
+d3.json("data.json").then(function(data) {
+    const width = 800;
+    const height = 600;
 
-      // Création des arêtes & noeuds
-      const link = container.append("g")
-        .selectAll("line")
+    const svg = d3.select("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Effet de force sur le graphe
+    const simulation = d3.forceSimulation(data.nodes)
+        .force("charge", d3.forceManyBody().strength(-100))
+        .force("link", d3.forceLink(data.links).id(d => d.id).distance(100)) 
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Création des arêtes & des noeuds
+    const link = svg.selectAll(".link")
         .data(data.links)
         .enter().append("line")
         .attr("class", "link")
-        .style("stroke", "#999")
-        .style("stroke-opacity", 0.6);
+        .attr("stroke", "#999")
+        .attr("stroke-width", 2);
 
-      const node = container.append("g")
-        .selectAll("circle")
+    const node = svg.selectAll(".node")
         .data(data.nodes)
         .enter().append("circle")
         .attr("class", "node")
-        .attr("r", 8)
-        .style("fill", d => d3.schemeCategory10[d.group]);
+        .attr("r", 10)
+        .attr("fill", d => d3.schemeCategory10[d.group])
+        .call(d3.drag()
+            .on("start", dragStart)
+            .on("drag", dragging)
+            .on("end", dragEnd));
 
-      const labels = container.append("g")
-        .selectAll("text")
+    const labels = svg.selectAll(".label")
         .data(data.nodes)
         .enter().append("text")
-        .attr("dy", 4) 
-        .attr("dx", 12) 
+        .attr("class", "label")
+        .attr("dy", -15) 
+        .attr("dx", 0)
         .text(d => d.id);
 
-      force.on("tick", () => {
+    simulation.on("tick", function() {
         link
-          .attr("x1", d => d.source.x)
-          .attr("y1", d => d.source.y)
-          .attr("x2", d => d.target.x)
-          .attr("y2", d => d.target.y);
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
 
         node
-          .attr("cx", d => d.x)
-          .attr("cy", d => d.y);
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
 
         labels
-          .attr("x", d => d.x)
-          .attr("y", d => d.y);
-      });
+            .attr("x", d => d.x)
+            .attr("y", d => d.y);
     });
-  </script>
+
+    // Fonction de déplacement
+    function dragStart(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragging(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    function dragEnd(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+});
+</script>
+
 </body>
 </html>
