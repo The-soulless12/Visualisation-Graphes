@@ -1,0 +1,64 @@
+{
+    "nodes": [
+      { "id": "A", "group": 1 },
+      { "id": "B", "group": 2 },
+      { "id": "C", "group": 3 },
+      { "id": "D", "group": 4 },
+      { "id": "E", "group": 5 },
+      { "id": "F", "group": 6 },
+      { "id": "G", "group": 7 },
+      { "id": "H", "group": 8 },
+      { "id": "I", "group": 9 },
+      { "id": "J", "group": 9 },
+      { "id": "K", "group": 8 },
+      { "id": "L", "group": 7 },
+      { "id": "M", "group": 6 },
+      { "id": "N", "group": 5 }
+    ],
+    "links": [
+      { "source": "A", "target": "B" },
+      { "source": "A", "target": "C" },
+      { "source": "A", "target": "D" },
+      { "source": "A", "target": "E" },
+      { "source": "A", "target": "F" },
+      { "source": "A", "target": "G" },
+      
+      { "source": "B", "target": "C" },
+      { "source": "B", "target": "D" },
+      { "source": "B", "target": "E" },
+      { "source": "B", "target": "F" },
+      { "source": "B", "target": "G" },
+      { "source": "B", "target": "H" },
+      
+      { "source": "C", "target": "D" },
+      { "source": "C", "target": "E" },
+      { "source": "C", "target": "F" },
+      { "source": "C", "target": "G" },
+      { "source": "C", "target": "H" },
+      { "source": "C", "target": "I" },
+      
+      { "source": "E", "target": "F" },
+      { "source": "E", "target": "G" },
+      { "source": "E", "target": "H" },
+      { "source": "E", "target": "I" },
+      { "source": "E", "target": "J" },
+      
+      { "source": "F", "target": "G" },
+      { "source": "F", "target": "H" },
+      { "source": "F", "target": "I" },
+      { "source": "F", "target": "J" },
+      { "source": "F", "target": "K" },
+      
+      { "source": "G", "target": "H" },
+      { "source": "G", "target": "I" },
+      { "source": "G", "target": "J" },
+      { "source": "G", "target": "K" },
+      { "source": "G", "target": "L" },
+      
+      { "source": "I", "target": "J" },
+      { "source": "I", "target": "K" },
+      { "source": "I", "target": "L" },
+      { "source": "I", "target": "M" },
+      { "source": "I", "target": "N" }
+    ]
+  }  

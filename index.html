@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualisation Graphes</title>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap');
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .node {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+    text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      fill: #333;
+      pointer-events: none;
+    }
+    svg {
+      border: 1px solid black;
+      display: block;
+      margin: auto;
+      border-radius: 20px;
+      background-color: #fff;
+    }
+    .container {
+      position: absolute;
+      top: 15px;
+      left: 10px;
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <svg width="800" height="600"></svg>
+  <div class="container">
+    <input type="checkbox" id="fisheye" onclick="updateEffect()"> Fisheye
+    <br>
+    <input type="checkbox" id="force-diagram" onclick="updateEffect()"> Diagramme de Force
+  </div>
+  <script>
+    const width = 800, height = 600;
+    const svg = d3.select("svg");
+    const container = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+    d3.json("data.json").then(data => {
+    
+      const force = d3.forceSimulation(data.nodes)
+        .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(0, 0));
+
+      // Création des arêtes & noeuds
+      const link = container.append("g")
+        .selectAll("line")
+        .data(data.links)
+        .enter().append("line")
+        .attr("class", "link")
+        .style("stroke", "#999")
+        .style("stroke-opacity", 0.6);
+
+      const node = container.append("g")
+        .selectAll("circle")
+        .data(data.nodes)
+        .enter().append("circle")
+        .attr("class", "node")
+        .attr("r", 8)
+        .style("fill", d => d3.schemeCategory10[d.group]);
+
+      const labels = container.append("g")
+        .selectAll("text")
+        .data(data.nodes)
+        .enter().append("text")
+        .attr("dy", 4) 
+        .attr("dx", 12) 
+        .text(d => d.id);
+
+      force.on("tick", () => {
+        link
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+
+        node
+          .attr("cx", d => d.x)
+          .attr("cy", d => d.y);
+
+        labels
+          .attr("x", d => d.x)
+          .attr("y", d => d.y);
+      });
+    });
+  </script>
+</body>
+</html>
