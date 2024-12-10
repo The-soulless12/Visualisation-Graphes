@@ -1,18 +1,18 @@
 {
   "nodes": [
-    { "id": "Christian", "group": 1 },
-    { "id": "Kasirla", "group": 2 },
-    { "id": "Melvynn", "group": 3 },
-    { "id": "Camille", "group": 4 },
-    { "id": "Félix", "group": 5 },
-    { "id": "Rémy", "group": 6 },
-    { "id": "Katia", "group": 7 },
-    { "id": "Arshall", "group": 8 },
-    { "id": "Alia", "group": 9 },
-    { "id": "Tarek", "group": 9 },
-    { "id": "Ines", "group": 8 },
-    { "id": "Ikram", "group": 7 },
-    { "id": "Quentin", "group": 6 }
+    { "id": "Christian", "group": 1 , "team": "Otomis"},
+    { "id": "Kasirla", "group": 2 , "team": "Nahuas"},
+    { "id": "Melvynn", "group": 3 , "team": "Yaquis"},
+    { "id": "Camille", "group": 4 , "team": "Yaquis"},
+    { "id": "Félix", "group": 5 , "team": "Yaquis"},
+    { "id": "Rémy", "group": 6 , "team": "Yaquis"},
+    { "id": "Katia", "group": 7 , "team": "Nahuas"},
+    { "id": "Arshall", "group": 8 , "team": "Nahuas"},
+    { "id": "Alia", "group": 9 , "team": "Otomis"},
+    { "id": "Tarek", "group": 9 , "team": "Nahuas"},
+    { "id": "Ines", "group": 8 , "team": "Otomis"},
+    { "id": "Ikram", "group": 7 , "team": "Nahuas"},
+    { "id": "Quentin", "group": 6 , "team": "Nahuas"}
   ],
   "links": [
     { "source": "Christian", "target": "Kasirla" },
