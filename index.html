@@ -10,10 +10,10 @@
       body {
         font-family: 'Montserrat', sans-serif;
         background-color: #f0f0f0;
-        margin: 0;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
+        justify-content: center;
         height: 100vh;
       }
 
@@ -36,8 +36,6 @@
 
       svg {
         border: 1px solid grey;
-        display: block;
-        margin: auto;
         border-radius: 20px;
         background-color: #fff;
       }
@@ -52,178 +50,155 @@
         pointer-events: none;
         display: none;
       }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        position: absolute;
+        left: 50px; 
+        top: 50vh; 
+        padding: 10px 20px;
+        background-color: #ffffff;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .checkbox-container input[type="checkbox"] {
+        margin-right: 10px;
+        transform: scale(1.5);
+        accent-color: #0078D4;
+      }
+
+      .checkbox-container label {
+        font-size: 16px;
+        color: #333;
+      }
     </style>
 </head>
 <body>
-  <svg width="800" height="600"></svg>
-  <div class="tooltip"></div>
-  
-<script src="https://d3js.org/d3.v6.min.js"></script>
+    <div class="checkbox-container">
+        <input type="checkbox" id="fisheyeToggle">
+        <label for="fisheyeToggle">Effet Fisheye</label>
+    </div>
+    <svg width="800" height="600"></svg>
+    <div class="tooltip"></div>
+    
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="fisheye.js"></script>
+    <script>
+        d3.json("Legends01.json").then(function(data) {
+            const width = 800;
+            const height = 600;
+            const svg = d3.select("svg").attr("width", width).attr("height", height);
+            const tooltip = d3.select(".tooltip");
+            const fisheye = d3.fisheye.circular().radius(100).distortion(1);
+            const fisheyeToggle = document.getElementById("fisheyeToggle");
 
-<script>
-// Fonction pour l'effet Fisheye
-(function() {
-  d3.fisheye = {
-    circular: function() {
-      var radius = 0.5,
-          distortion = 0.05,
-          k0,
-          k1,
-          focus = [0, 0];
+            const simulation = d3.forceSimulation(data.nodes)
+                .force("charge", d3.forceManyBody().strength(-50))
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+                .force("center", d3.forceCenter(width / 2, height / 2));
 
-      function fisheye(d) {
-        var dx = d.x - focus[0],
-            dy = d.y - focus[1],
-            dd = Math.sqrt(dx * dx + dy * dy);
-        if (!dd || dd >= radius) return {x: d.x, y: d.y, z: 1};
-        var k = k0 * (1 - Math.exp(-dd * k1)) / dd * .75 + .25;
-        return {x: focus[0] + dx * k, y: focus[1] + dy * k, z: Math.min(k, 10)};
-      }
+            // Création des noeuds et arêtes
+            const link = svg.selectAll(".link")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke", "#999")
+                .attr("stroke-width", 2);
 
-      function rescale() {
-        k0 = Math.exp(distortion);
-        k0 = k0 / (k0 - 1) * radius;
-        k1 = distortion / radius;
-        return fisheye;
-      }
+            const node = svg.selectAll(".node")
+                .data(data.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 10)
+                .attr("fill", d => d3.schemeCategory10[d.group])
+                .call(d3.drag()
+                    .on("start", dragStart)
+                    .on("drag", dragging)
+                    .on("end", dragEnd));
 
-      fisheye.radius = function(_) {
-        if (!arguments.length) return radius;
-        radius = +_;
-        return rescale();
-      };
+            const labels = svg.selectAll(".label")
+                .data(data.nodes)
+                .enter().append("text")
+                .attr("class", "label")
+                .attr("dy", -15) 
+                .attr("dx", 0)
+                .text(d => d.id);
 
-      fisheye.distortion = function(_) {
-        if (!arguments.length) return distortion;
-        distortion = +_;
-        return rescale();
-      };
+            // Evenements et interactions
+            fisheyeToggle.addEventListener("change", function() {
+                if (this.checked) {
+                    svg.on("mousemove", applyFisheye);
+                } else {
+                    svg.on("mousemove", null);
+                }
+            });
 
-      fisheye.focus = function(_) {
-        if (!arguments.length) return focus;
-        focus = _;
-        return fisheye;
-      };
+            function applyFisheye(event) {
+                const [x, y] = d3.pointer(event);
+                fisheye.focus([x, y]);
 
-      return rescale();
-    }
-  };
-})();
+                node.each(function(d) {
+                    const fisheyePosition = fisheye(d);
+                    d.x = fisheyePosition.x;
+                    d.y = fisheyePosition.y;
+                    d.r = fisheyePosition.z * 10;
+                });
 
-d3.json("data.json").then(function(data) {
-    const width = 800;
-    const height = 600;
+                simulation.alpha(1).restart();
+            }
 
-    const svg = d3.select("svg")
-        .attr("width", width)
-        .attr("height", height);
+            simulation.on("tick", function() {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
 
-    const tooltip = d3.select(".tooltip");
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y)
+                    .attr("r", d => d.r || 10);
 
-    // Initialisation du fisheye
-    const fisheye = d3.fisheye.circular().radius(100).distortion(1);
+                labels
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
 
-    // Simulation de la force
-    const simulation = d3.forceSimulation(data.nodes)
-        .force("charge", d3.forceManyBody().strength(-100))
-        .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+            node.on("mouseover", function(event, d) {
+                tooltip.style("display", "inline")
+                    .html(`Team: ${d.team}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY + 10) + "px");
 
-    // Création des liens et des nœuds
-    const link = svg.selectAll(".link")
-        .data(data.links)
-        .enter().append("line")
-        .attr("class", "link")
-        .attr("stroke", "#999")
-        .attr("stroke-width", 2);
+                d3.select(this).transition().duration(200).attr("r", 15); 
+            }).on("mouseout", function() {
+                tooltip.style("display", "none");
+                d3.select(this).transition().duration(200).attr("r", d => d.r || 10);
+            });
 
-    const node = svg.selectAll(".node")
-        .data(data.nodes)
-        .enter().append("circle")
-        .attr("class", "node")
-        .attr("r", 10)
-        .attr("fill", d => d3.schemeCategory10[d.group])
-        .call(d3.drag()
-            .on("start", dragStart)
-            .on("drag", dragging)
-            .on("end", dragEnd));
+            // Fonctions de déplacement de noeuds
+            function dragStart(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
 
-    const labels = svg.selectAll(".label")
-        .data(data.nodes)
-        .enter().append("text")
-        .attr("class", "label")
-        .attr("dy", -15) 
-        .attr("dx", 0)
-        .text(d => d.id);
+            function dragging(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
 
-    // Application de l'effet fisheye au mouvement de la souris
-    svg.on("mousemove", function(event) {
-        const [x, y] = d3.pointer(event);
-        fisheye.focus([x, y]); // Définir le focus pour l'effet fisheye
-
-        // Appliquer l'effet fisheye aux nœuds
-        node.each(function(d) {
-            const fisheyePosition = fisheye(d);
-            d.x = fisheyePosition.x;
-            d.y = fisheyePosition.y;
-            d.r = fisheyePosition.z * 10; // Modifier la taille du nœud en fonction du fisheye
+            function dragEnd(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
         });
-
-        simulation.alpha(1).restart();
-    });
-
-    simulation.on("tick", function() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y)
-            .attr("r", d => d.r);
-
-        labels
-            .attr("x", d => d.x)
-            .attr("y", d => d.y);
-    });
-
-    // Affichage de la tooltip au survol du noeud
-    node.on("mouseover", function(event, d) {
-        tooltip.style("display", "inline")
-            .html(`Team: ${d.team}`)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY + 10) + "px");
-
-        // Augmenter la taille du noeud pendant le survol
-        d3.select(this).transition().duration(200).attr("r", 15); // Augmenter la taille du nœud pendant le survol
-    }).on("mouseout", function() {
-        tooltip.style("display", "none");
-
-        // Remettre la taille du nœud à la normale
-        d3.select(this).transition().duration(200).attr("r", d => d.r);
-    });
-
-    // Fonction de déplacement des noeuds
-    function dragStart(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-    }
-
-    function dragging(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-    }
-
-    function dragEnd(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-    }
-});
-</script>
-
+    </script>
 </body>
 </html>
