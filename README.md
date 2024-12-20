@@ -11,5 +11,5 @@ Projet D3.js intégrant des interactions dynamiques comme l'effet Fish Eye et un
 - Legends01.json : Fichier de données JSON contenant les noeuds et les liens du graphe.
 
 # Prérequis
-- Navigateur internet
+- Navigateur internet.
 - La librairie D3.js.
