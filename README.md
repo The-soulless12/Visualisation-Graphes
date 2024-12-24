@@ -13,3 +13,7 @@ Projet D3.js intégrant des interactions dynamiques comme l'effet Fish Eye et un
 # Prérequis
 - Navigateur internet.
 - La librairie D3.js.
+
+# Note
+- Pour exécuter le projet, saisissez la commande `python -m http.server` dans votre terminal.
+- Ouvrez l'URL `http://localhost:8000` dans votre navigateur internet.
