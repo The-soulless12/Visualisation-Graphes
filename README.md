@@ -6,7 +6,7 @@ Projet D3.js intégrant des interactions dynamiques comme l'effet Fish Eye et un
 - Effet Fish Eye interactif.
 
 # Structure du Projet
-- index.html : Inclut le style CSS, les scripts JavaScript, et l’initialisation du graphe.
+- index.html : Inclut le style CSS, les scripts JavaScript et l’initialisation du graphe.
 - fisheye.js : Implémente l’effet Fish Eye pour D3.js.
 - Legends01.json : Fichier de données JSON contenant les noeuds et les liens du graphe.
 
